@@ -27,21 +27,26 @@ async function stateMachine(textContent) {
   // const lines = textContent.split('\n').slice(0, 10)
   const lines = textContent.split('\n')
 
-  let seasonNumber;
-  let episodeNumber;
+  let seasonNumber = 0;
+  let seasonEpisodeNumber = 0 ;
+  let absoluteEpisodeNumber = 0;
   let episodeName;
   let episodeUrl;
 
+  let absoluteNumberBuffer;
 
   for (let line of lines) {
     const cleanedLine = line.trim()
     const lcLine = cleanedLine.toLocaleLowerCase();
     if (lcLine.startsWith('sezon')) {
       seasonNumber = lcLine.split(' ')[1]
+      absoluteNumberBuffer = absoluteEpisodeNumber;
       console.log(`Settings seasonNumber to ${seasonNumber}`);
     } else if (lcLine.match(/^\d+./)) {
-      [episodeNumber, episodeName] = cleanedLine.split('. ')
-      console.log(episodeNumber, episodeName);
+      [absoluteEpisodeNumber, episodeName] = cleanedLine.split('. ')
+      seasonEpisodeNumber = absoluteEpisodeNumber - absoluteNumberBuffer;
+      console.log(absoluteEpisodeNumber, episodeName);
+
     } else if (lcLine.startsWith('http')) {
       episodeUrl = cleanedLine
       console.log(episodeUrl);
@@ -51,7 +56,7 @@ async function stateMachine(textContent) {
       if (sanitizedEpisodeName.endsWith('.')) {
         sanitizedEpisodeName = sanitizedEpisodeName.substring(0, sanitizedEpisodeName.length-1)
       }
-      const fileName = `Świat.Według.Kiepskich.S${seasonNumber.padStart(2, '0')}E${episodeNumber.padStart(3, '0')}.${sanitizedEpisodeName}`
+      const fileName = `Świat.Według.Kiepskich.S${seasonNumber.padStart(2, '0')}E${seasonEpisodeNumber.toString().padStart(3, '0')}.${sanitizedEpisodeName}`
       console.log(directoryName,fileName);
 
       await spawn("yt-dlp", [episodeUrl, '-o', `./downloads/${directoryName}/${fileName}.%(ext)s`])
